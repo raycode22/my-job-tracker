@@ -24,7 +24,14 @@
     <h1>Job Details</h1>
 
     <!-- TODO: Render the single job card here using $job -->
-
-    <p style="margin-top: 2rem;"><a href="/">← Back to all jobs</a></p>
+    <a href="/job/<?= $job->id ?>" class="job-card">
+        <div class="job-stat-con-left">
+            <h2 class="job-title"><?= htmlspecialchars($job->title) ?></h2>
+            <p class="job-company"><?= htmlspecialchars($job->company) ?></p>
+        </div>
+        <div class="job-stat-con-right">
+            <span class="job-status <?= getStatusClass($job->status) ?>"><?= htmlspecialchars($job->status) ?></span>
+        </div>
+    </a>
 </body>
 </html>
