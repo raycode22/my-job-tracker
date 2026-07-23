@@ -1,22 +1,36 @@
 <?php
-  $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-  $segments = explode('/', $uri);
-  $requestedId = 0;
+  $host = 'db';
+  $db   = 'db';
+  $user = 'db';
+  $pass = 'db';
+  $charset = 'utf8mb4';
 
-    if ($segments[0] === 'job' && isset($segments[1])) {
-        $requestedId = (int) $segments[1];
-    }
+  $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+  $options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Throw exceptions on errors
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Default to associative arrays
+    PDO::ATTR_EMULATE_PREPARES   => false,                  // Use real prepared statements
+  ];
+  try {
+    $pdo = new PDO($dsn, $user, $pass, $options);
+  } catch (\PDOException $e) {
+    throw new \PDOException($e->getMessage(), (int)$e->getCode());
+  }
+
+  $stmt = $pdo->query("SELECT id, title, company, status FROM jobs");
+  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $jobBoard = array_map(fn($row) => new Job(
+    (int) $row['id'],
+    $row['title'],
+    $row['company'],
+    $row['status']
+    ), $rows);
 
   class Job{
     public function __construct(public int $id, public string $title, public string $company, public string $status) {
     }
   }
-  $jobBoard = [
-    new Job(1, "Senior PHP Developer", "Acme Corp.", "Applied"),
-    new Job(2, "Junior PHP Developer", "Century Royale", "Interviewing"),
-    new Job(3, "PHP Intern", "Tron Technologies", "Offered"),
-    new Job(4, "PHP Intern", "Adena Inc.", "Rejected"),
-  ];
+
   function getStatusClass(string $status): string 
     {
       return match ($status) {
@@ -27,6 +41,26 @@
           default        => '',
       };
    }
+  if($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = trim($_POST['title'] ?? '');
+    $company = trim($_POST['company'] ?? '');
+    $status = $_POST['status'] ?? '';
+    if($title !== '' && $company !== '') {
+      $sql = "INSERT INTO jobs (title, company, status) VALUES (?,?,?)";
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([$title, $company, $status]);
+      header('Location: /');
+      exit;
+    }
+  }
+
+  $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+  $segments = explode('/', $uri);
+  $requestedId = 0;
+
+    if ($segments[0] === 'job' && isset($segments[1])) {
+        $requestedId = (int) $segments[1];
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,31 +85,16 @@
 <body>
     <h1>My Job Tracker</h1>
     <?php
-      function renderJob (Job $job): string {
-        $dynamicClass = getStatusClass($job->status);
-        return <<<HTML
-          <div class="job-card">
-            <div class="job-stat-con-left">
-              <h2 class="job-title">$job->title</h2>
-              <p class="job-company">$job->company</p>
-            </div>
-            <div class="job-stat-con-right">
-              <span class="job-status {$dynamicClass}">$job->status</span>
-            </div>
-          </div>
-        HTML;
-      }
       if($requestedId > 0) {
         foreach ($jobBoard as $job) {
           if($job->id === $requestedId) {
-            echo renderJob($job);
+            require __DIR__ . '/../views/job-details.php';
             break;
           }
         }
       }else {
-        foreach ($jobBoard as $job){
-          echo renderJob($job);
-        }
+        $jobs = $jobBoard;
+        require __DIR__ . '/../views/job-list.php';
       }
     ?>
     <p style="margin-top: 2rem;"><a href="/">← Back to all jobs</a></p>
