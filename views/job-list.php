@@ -21,7 +21,17 @@
     </style>
 </head>
 <body>
-    <h1>My Job Tracker</h1>
+    <form action="/" method="post">
+        <input type="text" name="title" placeholder="Job title">
+        <input type="text" name="company" placeholder="Company">
+        <select name="status">
+            <option value="Applied">Applied</option>
+            <option value="Offered">Offered</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+        <button type="submit">Add Job</button>
+    </form>
     <?php foreach ($jobs as $job): ?>
         <?php $statusClass = getStatusClass($job->status); ?>
         <a href="/job/<?= $job->id ?>" class="job-card">
@@ -34,6 +44,5 @@
             </div>
         </a>
     <?php endforeach; ?>
-    <p style="margin-top: 2rem;"><a href="/">← Back to all jobs</a></p>
 </body>
 </html>
