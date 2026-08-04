@@ -10,7 +10,7 @@
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; padding: 2em 4em; font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; color-scheme: light dark; }
         h1 { font-size: 2rem; margin-bottom: 1rem; }
-        .job-card { display: flex; align-items: center; padding: 1.5rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.75rem; }
+        .job-card { display: flex; align-items: center; padding: 1.5rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.75rem; text-decoration: none; }
         .job-stat-con-left { flex-grow: 1; }
         .job-title { font-size: 1.4rem; margin: 0; }
         .job-company { font-size: 1.2rem; color: #555; margin: 0; }
@@ -24,7 +24,7 @@
     <h1>Job Details</h1>
 
     <!-- TODO: Render the single job card here using $job -->
-    <a href="/job/<?= $job->id ?>" class="job-card">
+    <a href="/job/<?= $job->id ?>" class="job-card" style="text-decoration: none; color: inherit;">
         <div class="job-stat-con-left">
             <h2 class="job-title"><?= htmlspecialchars($job->title) ?></h2>
             <p class="job-company"><?= htmlspecialchars($job->company) ?></p>
@@ -33,5 +33,6 @@
             <span class="job-status <?= getStatusClass($job->status) ?>"><?= htmlspecialchars($job->status) ?></span>
         </div>
     </a>
+    <p style="margin-top: 2rem;"><a href="/">← Back to all jobs</a></p>
 </body>
 </html>
