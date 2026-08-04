@@ -42,18 +42,28 @@
       };
    }
   if($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = trim($_POST['title'] ?? '');
-    $company = trim($_POST['company'] ?? '');
-    $status = $_POST['status'] ?? '';
-    if($title !== '' && $company !== '') {
-      $sql = "INSERT INTO jobs (title, company, status) VALUES (?,?,?)";
-      $stmt = $pdo->prepare($sql);
-      $stmt->execute([$title, $company, $status]);
-      header('Location: /');
-      exit;
-    }
-  }
+    if (isset($_POST['delete_id'])) {
+        $deleteId = (int) $_POST['delete_id'];
+        $stmt = $pdo->prepare("DELETE FROM jobs WHERE id = ?");
+        $stmt->execute([$deleteId]);
+        
+        header('Location: /');
+        exit;
+    } 
+    else {
+        $title = trim($_POST['title'] ?? '');
+        $company = trim($_POST['company'] ?? '');
+        $status = $_POST['status'] ?? 'Applied';
 
+        if ($title !== '' && $company !== '') {
+            $stmt = $pdo->prepare("INSERT INTO jobs (title, company, status) VALUES (?, ?, ?)");
+            $stmt->execute([$title, $company, $status]);
+            
+            header('Location: /');
+            exit;
+        }
+    }
+}
   $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
   $segments = explode('/', $uri);
   $requestedId = 0;
@@ -97,6 +107,6 @@
         require __DIR__ . '/../views/job-list.php';
       }
     ?>
-    <p style="margin-top: 2rem;"><a href="/">← Back to all jobs</a></p>
+    
 </body>
 </html>
