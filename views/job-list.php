@@ -1,4 +1,5 @@
-<form action="/" method="post" class="add-job-form">
+<h2>Job List</h2>
+<form action="/" method="POST" class="job-form">
     <input type="text" name="title" placeholder="Job title">
     <input type="text" name="company" placeholder="Company">
     <select name="status">
@@ -9,7 +10,6 @@
     </select>
     <button type="submit" class="btn" style="background: #4CAF50; color: white;">Add Job</button>
 </form>
-
 <?php foreach ($jobs as $job): ?>
     <?php $statusClass = getStatusClass($job->status); ?>
     <div class="job-card"> 
