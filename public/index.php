@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 $host = 'db';
 $db   = 'db';
 $user = 'db';
@@ -51,7 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $deleteId = (int) $_POST['delete_id'];
         $stmt = $pdo->prepare("DELETE FROM jobs WHERE id = ?");
         $stmt->execute([$deleteId]);
-        
+
+        $_SESSION['success'] = 'Success: Job deleted';
         header('Location: /');
         exit;
     } elseif (isset($_POST['update_id'])) {
@@ -63,8 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title !== '' && $company !== '') {
             $stmt = $pdo->prepare("UPDATE jobs SET title = ?, company = ?, status = ? WHERE id = ?");
             $stmt->execute([$title, $company, $status, $updateId]);
-            
+
+            $_SESSION['success'] = 'Success: Job updated';
             header('Location: /');
+            exit;
+        } else {
+            $_SESSION['error'] = 'Error: Please fill in all fields';
+            header('Location: /job/' . $updateId . '/edit');
             exit;
         }
     } else {
@@ -75,7 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title !== '' && $company !== '') {
             $stmt = $pdo->prepare("INSERT INTO jobs (title, company, status) VALUES (?, ?, ?)");
             $stmt->execute([$title, $company, $status]);
-            
+
+            $_SESSION['success'] = 'Success: Job added';
+            header('Location: /');
+            exit;
+        } else {
+
+            $_SESSION['error'] = 'Error: Please fill in all fields';
             header('Location: /');
             exit;
         }
@@ -129,13 +143,23 @@ if ($segments[0] === 'job' && isset($segments[1])) {
         .btn { display: inline-block; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; line-height: 1; vertical-align: middle; }
         .btn-edit { background: #2196F3; color: white; }
         .btn-delete { background: #F44336; color: white; }
-        form.add-job-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; padding: 1.5rem; border: 2px dashed #ccc; border-radius: 8px; }
-        form.add-job-form input, form.add-job-form select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+        form.job-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; padding: 1.5rem; border: 2px dashed #ccc; border-radius: 8px; }
+        form.job-form input, form.job-form select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <h1>My Job Tracker</h1>
+    <h1>JobTrackerPH</h1>
     <?php
+    if (isset($_SESSION['success'])) {
+        echo '<p style="color: green;">' . htmlspecialchars($_SESSION['success']) . '</p>';
+        unset($_SESSION['success']);
+    }
+
+    if (isset($_SESSION['error'])) {
+        echo '<p style="color: red;">' . htmlspecialchars($_SESSION['error']) . '</p>';
+        unset($_SESSION['error']);
+    }
+
     if ($currentView === 'edit') {
         require __DIR__ . '/../views/job-edit.php';
     } elseif ($currentView === 'detail') {
