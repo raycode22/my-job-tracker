@@ -1,6 +1,5 @@
-<h1>Edit Job</h1>
-
-<form action="" method="POST">
+<h2>Edit Job</h2>
+<form action="" method="POST" class="job-form">
     <input type="hidden" name="update_id" value="<?= $job->id ?>">
     <input type="text" name="title" value="<?= htmlspecialchars($job->title) ?>">
     <input type="text" name="company" value="<?= htmlspecialchars($job->company) ?>">
@@ -12,7 +11,6 @@
     </select>
     <button type="submit" class="btn btn-edit">Save Changes</button>
 </form>
-
 <p style="margin-top: 2rem;">
     <a href="/job/<?= $job->id ?>">← Back to Job Details</a>
 </p>
