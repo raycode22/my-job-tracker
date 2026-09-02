@@ -74,6 +74,15 @@ class Job {
     ) {}    
 }
 
+function formatSalary(?float $amount, Currency $currency): string {
+    if($amount === null) {
+        return 'Not specified';
+    }
+
+    $formatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
+    return $formatter->formatCurrency($amount, $currency->value);
+}
+
 $stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $jobBoard = array_map(fn($row) => new Job(

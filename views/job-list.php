@@ -26,7 +26,7 @@
         <a href="/job/<?= $job->id ?>" class="job-stat-con-left">
             <h2 class="job-title"><?= htmlspecialchars($job->title) ?></h2>
             <p class="job-company"><?= htmlspecialchars($job->company) ?></p>
-            <p class="job-salary"><?= ($job->salary ?? "") ? number_format($job->salary, 2) : '0.00' ?></p>
+            <p class="job-salary"><?= formatSalary($job->salary, $job->currency) ?></p>
         </a>
         <div class="job-stat-con-right">
             <span class="<?= $statusClass ?>"><?= htmlspecialchars($job->status->value) ?></span>
