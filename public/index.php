@@ -1,5 +1,48 @@
 <?php
+declare(strict_types=1);
 session_start();
+
+enum JobStatus: string {
+    case Applied = 'Applied';
+    case Offered = 'Offered';
+    case Interviewing = 'Interviewing';
+    case Rejected = 'Rejected';
+    case Hired = 'Hired';
+
+    public function cssClass(): string {
+        return match ($this) {
+            self::Applied => 'job-applied',
+            self::Offered => 'job-offered',
+            self::Interviewing => 'job-interviewing',
+            self::Rejected => 'job-rejected',
+            self::Hired => 'job-hired',
+        };
+    }
+}
+
+enum Currency: string {
+    case PHP = 'PHP';
+    case USD = 'USD';
+    case EUR = 'EUR';
+    case JPY = 'JPY';
+    case GBP = 'GBP';
+    case CAD = 'CAD';
+    case AUD = 'AUD';
+    case NZD = 'NZD';
+
+    public function flag(): string {
+        return match ($this) {
+            self::PHP => '🇵🇭',
+            self::USD => '🇺🇸',
+            self::EUR => '🇪🇺',
+            self::JPY => '🇯🇵',
+            self::GBP => '🇬🇧',
+            self::CAD => '🇨🇦',
+            self::AUD => '🇦🇺',
+            self::NZD => '🇳🇿',
+        };
+    }
+}
 
 $host = 'db';
 $db   = 'db';
@@ -20,32 +63,26 @@ try {
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
 
-class Job {
-    public function __construct(
+class Job { 
+        public function __construct(
         public int $id, 
         public string $title, 
-        public string $company, 
-        public string $status
-    ) {}
+        public string $company,
+        public JobStatus $status,
+        public ?float $salary,
+        public Currency $currency
+    ) {}    
 }
 
-function getStatusClass(string $status): string {
-    return match ($status) {
-        'Applied'      => 'job-applied',
-        'Offered'      => 'job-offered',    
-        'Interviewing' => 'job-interviewing',
-        'Rejected'     => 'job-rejected',
-        default        => '',
-    };
-}
-
-$stmt = $pdo->query("SELECT id, title, company, status FROM jobs");
+$stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $jobBoard = array_map(fn($row) => new Job(
     (int) $row['id'],
     $row['title'],
     $row['company'],
-    $row['status']
+    JobStatus::from($row['status']),
+    $row['salary'] !== null ? (float) $row['salary'] : null,
+    Currency::from($row['currency'])
 ), $rows);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -61,11 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateId = (int) $_POST['update_id'];
         $title = trim($_POST['title'] ?? '');
         $company = trim($_POST['company'] ?? '');
-        $status = $_POST['status'] ?? 'Applied';
-
+        $status = JobStatus::tryFrom ($_POST['status'] ?? '') ?? JobStatus::Applied;
+        $salary = $_POST['salary'] === '' ? null : (float) $_POST['salary'];
+        $currency = Currency::tryFrom($_POST['currency'] ?? '') ?? Currency::PHP;
+        
         if ($title !== '' && $company !== '') {
-            $stmt = $pdo->prepare("UPDATE jobs SET title = ?, company = ?, status = ? WHERE id = ?");
-            $stmt->execute([$title, $company, $status, $updateId]);
+            $stmt = $pdo->prepare("UPDATE jobs SET title = ?, company = ?, status = ?, salary = ?, currency = ? WHERE id = ?");
+            $stmt->execute([$title, $company, $status->value, $salary, $currency->value, $updateId]);
 
             $_SESSION['success'] = 'Success: Job updated';
             header('Location: /');
@@ -78,11 +117,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $title = trim($_POST['title'] ?? '');
         $company = trim($_POST['company'] ?? '');
-        $status = $_POST['status'] ?? 'Applied';
+        $status = JobStatus::tryFrom ($_POST['status'] ?? '') ?? JobStatus::Applied;
+        $salary = $_POST['salary'] === '' ? null : (float) $_POST['salary'];
+        $currency = Currency::tryFrom ($_POST['currency'] ?? '') ?? Currency::PHP;
 
         if ($title !== '' && $company !== '') {
-            $stmt = $pdo->prepare("INSERT INTO jobs (title, company, status) VALUES (?, ?, ?)");
-            $stmt->execute([$title, $company, $status]);
+            $stmt = $pdo->prepare("INSERT INTO jobs (title, company, status, salary, currency) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$title, $company, $status->value, $salary, $currency->value]); 
 
             $_SESSION['success'] = 'Success: Job added';
             header('Location: /');
@@ -136,15 +177,19 @@ if ($segments[0] === 'job' && isset($segments[1])) {
         .job-stat-con-right { display: flex; align-items: center; gap: 1rem; }
         .job-title { font-size: 1.4rem; margin: 0; }
         .job-company { font-size: 1.2rem; color: #555; margin: 0; }
-        .job-applied { color: #4CAF50; font-weight: bold; font-size: 1.2rem; }
+        .job-salary { font-size: 1.2rem; color: #888; margin: 0; }
+        .job-applied { color: #414141; font-weight: bold; font-size: 1.2rem; }
         .job-offered { color: #2196F3; font-weight: bold; font-size: 1.2rem; }
         .job-interviewing { color: #FFC107; font-weight: bold; font-size: 1.2rem; }
         .job-rejected { color: #F44336; font-weight: bold; font-size: 1.2rem; }
+        .job-hired { color: #4CAF50; font-weight: bold; font-size: 1.2rem; }
         .btn { display: inline-block; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; line-height: 1; vertical-align: middle; }
         .btn-edit { background: #2196F3; color: white; }
         .btn-delete { background: #F44336; color: white; }
         form.job-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; padding: 1.5rem; border: 2px dashed #ccc; border-radius: 8px; }
         form.job-form input, form.job-form select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+        input::placeholder, 
+        textarea::placeholder { font-style: italic; }
     </style>
 </head>
 <body>

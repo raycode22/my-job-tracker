@@ -3,11 +3,16 @@
     <input type="hidden" name="update_id" value="<?= $job->id ?>">
     <input type="text" name="title" value="<?= htmlspecialchars($job->title) ?>">
     <input type="text" name="company" value="<?= htmlspecialchars($job->company) ?>">
+    <input type="number" id="salary" name="salary" min="0" step="0.01" value="<?= $job->salary ?? '' ?>">
     <select name="status">
-        <option value="Applied" <?= $job->status === 'Applied' ? 'selected' : '' ?>>Applied</option>
-        <option value="Offered" <?= $job->status === 'Offered' ? 'selected' : '' ?>>Offered</option>
-        <option value="Interviewing" <?= $job->status === 'Interviewing' ? 'selected' : '' ?>>Interviewing</option>
-        <option value="Rejected" <?= $job->status === 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+    <?php foreach (JobStatus::cases() as $status): ?>
+       <option value="<?= $status->value ?>" <?= $job->status === $status ? 'selected' : '' ?>><?= $status->value ?></option>
+    <?php endforeach; ?>
+    </select>
+    <select name="currency" id="currency">
+    <?php foreach (Currency::cases() as $cur): ?> 
+        <option value="<?= $cur->value ?>" <?= $job->currency === $cur ? 'selected' : '' ?>><?= $cur->flag() ?> <?= $cur->value ?></option>
+    <?php endforeach; ?>
     </select>
     <button type="submit" class="btn btn-edit">Save Changes</button>
 </form>
