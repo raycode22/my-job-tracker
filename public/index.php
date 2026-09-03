@@ -85,14 +85,17 @@ function formatSalary(?float $amount, Currency $currency): string {
 
 $stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$jobBoard = array_map(fn($row) => new Job(
-    (int) $row['id'],
-    $row['title'],
-    $row['company'],
-    JobStatus::from($row['status']),
-    $row['salary'] !== null ? (float) $row['salary'] : null,
-    Currency::from($row['currency'])
-), $rows);
+$jobBoard = array_map(fn($row) => new Job((int) $row['id'],$row['title'],$row['company'],JobStatus::from($row['status']),$row['salary'] !== null ? (float) $row['salary'] : null, Currency::from($row['currency'])), $rows);
+$search = trim($_GET['q'] ?? '');
+$statusFilter = JobStatus::tryFrom($_GET['status'] ?? '');
+
+if ($statusFilter !== null) {
+    $jobBoard = array_filter($jobBoard, fn(Job $job) => $job->status === $statusFilter);
+}
+
+if ($search !== '') {
+    $jobBoard = array_filter($jobBoard, fn(Job $job) => stripos($job->title, $search) !== false || stripos($job->company, $search) !== false);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_id'])) {

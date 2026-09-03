@@ -20,6 +20,18 @@
     </select>
     <button type="submit" class="btn" style="background: #4CAF50; color: white;">Add Job</button>
 </form>
+<form action="/" method="GET" class="job-form">
+    <label for="search">Search:</label>
+    <input type="search" id="search" name="q" placeholder="title or company…" value="<?= htmlspecialchars($search)?>">
+    <label for="filter-status">Status:</label>
+    <select id="filter-status" name="status">
+        <option value="">All statuses</option>
+            <?php foreach (JobStatus::cases() as $s): ?>
+                <option value="<?= $s->value ?>" <?= $s === $statusFilter ? 'selected' : '' ?>><?= $s->value ?></option>
+        <?php endforeach; ?>
+    </select>
+    <button type="submit" class="btn btn-edit">Filter</button>
+</form>
 <?php foreach ($jobs as $job): ?>
     <?php $statusClass = $job->status->cssClass(); ?>
     <div class="job-card"> 
