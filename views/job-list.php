@@ -1,9 +1,9 @@
 <h2>Job List</h2>
 <form action="/" method="POST" class="job-form">
     <label for="title">Job Title:</label>
-    <input type="text" name="title" placeholder="enter job title...">
+    <input type="text" id="title" name="title" placeholder="enter job title...">
     <label for="company">Company:</label>
-    <input type="text" name="company" placeholder="enter company name...">
+    <input type="text" id="company" name="company" placeholder="enter company name...">
     <label for="salary">Salary:</label>
     <input type="number" id="salary" name="salary" min="0" step="0.01" placeholder="enter salary...">
     <label for="status">Status:</label>
