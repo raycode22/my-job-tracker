@@ -53,10 +53,6 @@ enum Currency: string {
     }
 }
 
-$host = 'db';
-$db   = 'db';
-$user = 'db';
-$pass = 'db';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -210,7 +206,7 @@ if ($segments[0] === 'job' && isset($segments[1])) {
         form.job-form { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 2rem; padding: 1.5rem; border: 2px dashed #ccc; border-radius: 8px; }
         form.job-form input, form.job-form select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
         input::placeholder, 
-        textarea::placeholder { font-style: italic; }
+        textarea::placeholder { font-style: itssalic; }
     </style>
 </head>
 <body>
