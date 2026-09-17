@@ -1,3 +1,8 @@
+<?php
+use App\Models\Job;
+use App\Models\JobStatus;
+use App\Models\Currency;
+?>
 <h2>Job Details</h2>
 <div class="job-card">
     <div class="job-stat-con-left">

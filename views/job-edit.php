@@ -1,3 +1,8 @@
+<?php
+use App\Models\Job;
+use App\Models\JobStatus;
+use App\Models\Currency;
+?>
 <h2>Edit Job</h2>
 <form action="" method="POST" class="job-form">
     <input type="hidden" name="update_id" value="<?= $job->id ?>">

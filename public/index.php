@@ -1,57 +1,20 @@
 <?php
 declare(strict_types=1);
+//ini_set('display_errors', 1); error_reporting(E_ALL);
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
+use App\Models\Job;
+use App\Models\JobStatus;
+use App\Models\Currency;
+
 $host = $_ENV['DB_HOST'];
 $db   = $_ENV['DB_NAME'];
 $user = $_ENV['DB_USER'];
 $pass = $_ENV['DB_PASS'];
-
-enum JobStatus: string {
-    case Applied = 'Applied';
-    case Offered = 'Offered';
-    case Interviewing = 'Interviewing';
-    case Rejected = 'Rejected';
-    case Hired = 'Hired';
-
-    public function cssClass(): string {
-        return match ($this) {
-            self::Applied => 'job-applied',
-            self::Offered => 'job-offered',
-            self::Interviewing => 'job-interviewing',
-            self::Rejected => 'job-rejected',
-            self::Hired => 'job-hired',
-        };
-    }
-}
-
-enum Currency: string {
-    case PHP = 'PHP';
-    case USD = 'USD';
-    case EUR = 'EUR';
-    case JPY = 'JPY';
-    case GBP = 'GBP';
-    case CAD = 'CAD';
-    case AUD = 'AUD';
-    case NZD = 'NZD';
-
-    public function flag(): string {
-        return match ($this) {
-            self::PHP => '🇵🇭',
-            self::USD => '🇺🇸',
-            self::EUR => '🇪🇺',
-            self::JPY => '🇯🇵',
-            self::GBP => '🇬🇧',
-            self::CAD => '🇨🇦',
-            self::AUD => '🇦🇺',
-            self::NZD => '🇳🇿',
-        };
-    }
-}
 
 $charset = 'utf8mb4';
 
@@ -66,17 +29,6 @@ try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
-}
-
-class Job { 
-        public function __construct(
-        public int $id, 
-        public string $title, 
-        public string $company,
-        public JobStatus $status,
-        public ?float $salary,
-        public Currency $currency
-    ) {}    
 }
 
 function formatSalary(?float $amount, Currency $currency): string {

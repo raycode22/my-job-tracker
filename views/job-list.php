@@ -1,3 +1,8 @@
+<?php
+use App\Models\Job;
+use App\Models\JobStatus;
+use App\Models\Currency;
+?>
 <h2>Job List</h2>
 <form action="/" method="POST" class="job-form">
     <label for="title">Job Title:</label>
