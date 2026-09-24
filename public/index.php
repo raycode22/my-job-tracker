@@ -4,32 +4,12 @@ declare(strict_types=1);
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 
+
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
-
 use App\Models\Job;
 use App\Models\JobStatus;
 use App\Models\Currency;
-
-$host = $_ENV['DB_HOST'];
-$db   = $_ENV['DB_NAME'];
-$user = $_ENV['DB_USER'];
-$pass = $_ENV['DB_PASS'];
-
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-    throw new \PDOException($e->getMessage(), (int)$e->getCode());
-}
 
 function formatSalary(?float $amount, Currency $currency): string {
     if($amount === null) {
@@ -40,6 +20,7 @@ function formatSalary(?float $amount, Currency $currency): string {
     return $formatter->formatCurrency($amount, $currency->value);
 }
 
+$pdo = require __DIR__ . '/../app/database.php';
 $stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $jobBoard = array_map(fn($row) => new Job((int) $row['id'],$row['title'],$row['company'],JobStatus::from($row['status']),$row['salary'] !== null ? (float) $row['salary'] : null, Currency::from($row['currency'])), $rows);
