@@ -3,22 +3,13 @@ declare(strict_types=1);
 //ini_set('display_errors', 1); error_reporting(E_ALL);
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
-
+require __DIR__ . '/../app/helpers.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 use App\Models\Job;
 use App\Models\JobStatus;
 use App\Models\Currency;
-
-function formatSalary(?float $amount, Currency $currency): string {
-    if($amount === null) {
-        return 'Not specified';
-    }
-
-    $formatter = new NumberFormatter('en_US', NumberFormatter::CURRENCY);
-    return $formatter->formatCurrency($amount, $currency->value);
-}
 
 $pdo = require __DIR__ . '/../app/database.php';
 $stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
