@@ -4,6 +4,7 @@ declare(strict_types=1);
 session_start();
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../app/helpers.php';
+require __DIR__ . '/../app/handlers.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -18,64 +19,16 @@ $jobBoard = array_map(fn($row) => new Job((int) $row['id'],$row['title'],$row['c
 $search = trim($_GET['q'] ?? '');
 $statusFilter = JobStatus::tryFrom($_GET['status'] ?? '');
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    handlePostRequest($pdo);
+}
+
 if ($statusFilter !== null) {
     $jobBoard = array_filter($jobBoard, fn(Job $job) => $job->status === $statusFilter);
 }
 
 if ($search !== '') {
     $jobBoard = array_filter($jobBoard, fn(Job $job) => stripos($job->title, $search) !== false || stripos($job->company, $search) !== false);
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['delete_id'])) {
-        $deleteId = (int) $_POST['delete_id'];
-        $stmt = $pdo->prepare("DELETE FROM jobs WHERE id = ?");
-        $stmt->execute([$deleteId]);
-
-        $_SESSION['success'] = 'Success: Job deleted';
-        header('Location: /');
-        exit;
-    } elseif (isset($_POST['update_id'])) {
-        $updateId = (int) $_POST['update_id'];
-        $title = trim($_POST['title'] ?? '');
-        $company = trim($_POST['company'] ?? '');
-        $status = JobStatus::tryFrom ($_POST['status'] ?? '') ?? JobStatus::Applied;
-        $salary = $_POST['salary'] === '' ? null : (float) $_POST['salary'];
-        $currency = Currency::tryFrom($_POST['currency'] ?? '') ?? Currency::PHP;
-        
-        if ($title !== '' && $company !== '') {
-            $stmt = $pdo->prepare("UPDATE jobs SET title = ?, company = ?, status = ?, salary = ?, currency = ? WHERE id = ?");
-            $stmt->execute([$title, $company, $status->value, $salary, $currency->value, $updateId]);
-
-            $_SESSION['success'] = 'Success: Job updated';
-            header('Location: /');
-            exit;
-        } else {
-            $_SESSION['error'] = 'Error: Please fill in all fields';
-            header('Location: /job/' . $updateId . '/edit');
-            exit;
-        }
-    } else {
-        $title = trim($_POST['title'] ?? '');
-        $company = trim($_POST['company'] ?? '');
-        $status = JobStatus::tryFrom ($_POST['status'] ?? '') ?? JobStatus::Applied;
-        $salary = $_POST['salary'] === '' ? null : (float) $_POST['salary'];
-        $currency = Currency::tryFrom ($_POST['currency'] ?? '') ?? Currency::PHP;
-
-        if ($title !== '' && $company !== '') {
-            $stmt = $pdo->prepare("INSERT INTO jobs (title, company, status, salary, currency) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$title, $company, $status->value, $salary, $currency->value]); 
-
-            $_SESSION['success'] = 'Success: Job added';
-            header('Location: /');
-            exit;
-        } else {
-
-            $_SESSION['error'] = 'Error: Please fill in all fields';
-            header('Location: /');
-            exit;
-        }
-    }
 }
 
 $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
@@ -92,8 +45,7 @@ if ($segments[0] === 'job' && isset($segments[1])) {
             $job = $j;
             break;
         }
-    }
-
+    } 
     if ($job) {
         if (isset($segments[2]) && $segments[2] === 'edit') {
             $currentView = 'edit';
