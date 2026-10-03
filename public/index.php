@@ -2,15 +2,18 @@
 declare(strict_types=1);
 //ini_set('display_errors', 1); error_reporting(E_ALL);
 session_start();
-require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../app/helpers.php';
-require __DIR__ . '/../app/handlers.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
 use App\Models\Job;
 use App\Models\JobStatus;
 use App\Models\Currency;
+
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../app/helpers.php';
+require __DIR__ . '/../app/handlers.php';
+require __DIR__ . '/../app/router.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
 
 $pdo = require __DIR__ . '/../app/database.php';
 $stmt = $pdo->query("SELECT id, title, company, salary, currency, status FROM jobs");
@@ -31,29 +34,13 @@ if ($search !== '') {
     $jobBoard = array_filter($jobBoard, fn(Job $job) => stripos($job->title, $search) !== false || stripos($job->company, $search) !== false);
 }
 
-$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$segments = explode('/', $uri);
-
 $currentView = 'list';
 $job = null;
 
-if ($segments[0] === 'job' && isset($segments[1])) {
-    $requestedId = (int) $segments[1];
-    
-    foreach ($jobBoard as $j) {
-        if ($j->id === $requestedId) {
-            $job = $j;
-            break;
-        }
-    } 
-    if ($job) {
-        if (isset($segments[2]) && $segments[2] === 'edit') {
-            $currentView = 'edit';
-        } else {
-            $currentView = 'detail';
-        }
-    }
-}
+$route = resolveRoute($jobBoard);
+$currentView = $route['view'];
+$job = $route['job'];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
